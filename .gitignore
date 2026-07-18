@@ -1,0 +1,18 @@
+# 本地私人配置
+config.json
+
+# 敏感数据 - 浏览器登录资料
+edge-profile/
+
+# 运行日志和截图
+logs/
+
+# 状态文件（记录是否已打卡）
+state.json
+
+# Node 依赖
+node_modules/
+
+# 系统文件
+Thumbs.db
+Desktop.ini

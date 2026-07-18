@@ -1,0 +1,18 @@
+{
+  "name": "zwu-school-punch-card",
+  "version": "1.0.0",
+  "private": true,
+  "description": "WPS 留校打卡的本地 Edge 自动化工具",
+  "scripts": {
+    "check": "node --check checkin.js",
+    "setup": "node checkin.js setup",
+    "dry-run": "node checkin.js dry-run",
+    "run": "node checkin.js run"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "playwright-core": "^1.61.1"
+  }
+}
