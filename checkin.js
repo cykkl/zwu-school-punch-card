@@ -270,6 +270,20 @@ async function submitForm(page) {
   if (await submit.count() !== 1) throw new Error('未找到唯一的提交按钮');
   await submit.click();
 
+  const confirmation = page.locator('.ant-modal:visible')
+    .filter({ hasText: '提交后不可修改' });
+  try {
+    await confirmation.waitFor({ state: 'visible', timeout: 10000 });
+    const confirm = confirmation.getByRole('button', { name: /确\s*认/ });
+    if (await confirm.count() !== 1) throw new Error('未找到唯一的二次确认按钮');
+    await confirm.click();
+  } catch (error) {
+    const currentText = await page.locator('body').innerText();
+    if (currentText.includes('提交后不可修改')) {
+      throw new Error(`二次确认失败：${error.message}`);
+    }
+  }
+
   await page.waitForFunction(
     ({ previous }) => {
       const text = document.body.innerText;
