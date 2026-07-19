@@ -25,7 +25,21 @@
 
 安装 Node.js 时使用默认选项即可。安装完成后可打开终端运行 `node --version`，能显示版本号即表示安装成功。
 
-## 从零安装
+## 推荐：一键首次配置
+
+1. 在 GitHub 仓库页面点击 **Code → Download ZIP**，下载后完整解压；
+2. 双击 `first-run.cmd`；
+3. 按提示输入姓名，并粘贴同一个 WPS 表单链接；
+4. 脚本会自动生成私人配置并安装依赖；
+5. Edge 打开后登录 WPS，在表单中手动点击定位并选择“允许”；
+6. 确认显示“浙江省宁波市”后关闭整个专用 Edge 窗口；
+7. 脚本会自动执行无提交测试；测试通过后自动创建每天 20:00 的计划任务。
+
+除姓名和 WPS 链接外，脚本已预设表单标题“26信智暑假留校每日打卡”、真实定位“浙江省宁波市”、住宿选项“在寝”、Edge 调试端口和执行时间。WPS 链接不写入公开仓库，避免表单内其他同学的信息被公开暴露。
+
+如果无提交测试失败，脚本不会创建计划任务。请根据窗口提示和 `logs` 中的记录排查。
+
+## 手动配置（可选）
 
 ### 1. 下载项目
 
@@ -48,9 +62,9 @@ git clone https://github.com/cykkl/zwu-school-punch-card.git
 ~~~json
 {
   "personName": "你的姓名",
-  "requiredLocation": "定位后页面显示的省市",
+  "requiredLocation": "浙江省宁波市",
   "formUrl": "https://f.wps.cn/你的表单地址",
-  "formTitle": "表单页面顶部的完整标题",
+  "formTitle": "26信智暑假留校每日打卡",
   "dormOption": "在寝",
   "edgePath": "",
   "cdpPort": 9227
@@ -71,12 +85,15 @@ git clone https://github.com/cykkl/zwu-school-punch-card.git
 
 ### 4. 登录 WPS 并允许定位
 
-1. 先关闭之前由本项目打开的专用 Edge 窗口；
-2. 双击 `setup.cmd`；
-3. 在自动打开的 Edge 中登录 WPS；
-4. 浏览器询问定位权限时选择“允许”；
-5. 确认表单能显示正确的真实省市；
-6. 完成后关闭整个专用 Edge 窗口。
+1. 打开 Windows“设置 → 隐私和安全性 → 位置”，开启“位置服务”“允许应用访问你的位置”和“允许桌面应用访问你的位置”；
+2. 在 Edge 打开 `edge://settings/content/location`，开启“访问前询问”，并从阻止列表中移除 WPS；
+3. 关闭之前由本项目打开的专用 Edge 窗口；
+4. 双击 `setup.cmd`；
+5. 在自动打开的 Edge 中登录 WPS；
+6. 在表单中手动点击“重新定位”或“点击自动定位”；
+7. 浏览器询问位置权限时选择“允许”；
+8. 必须确认表单显示 `requiredLocation` 中填写的真实省市；
+9. 成功后关闭整个专用 Edge 窗口。
 
 登录状态和定位权限会保存在本地 `edge-profile` 文件夹中，不会上传到 GitHub。
 
@@ -144,7 +161,15 @@ Unregister-ScheduledTask -TaskName "WPS留校每日打卡" -Confirm:$false
 
 ### 定位失败或城市不正确
 
-检查 Windows 定位服务和 Edge 的网站定位权限，关闭 VPN 的位置干扰后重新运行 `setup.cmd`。程序只接受 `config.json` 中要求的真实省市。
+依次检查：
+
+1. Windows“设置 → 隐私和安全性 → 位置”中的三个位置开关；
+2. Edge 的 `edge://settings/content/location` 是否开启“访问前询问”，WPS 是否在阻止列表；
+3. 重新运行 `setup.cmd`，在表单内手动点击定位并选择“允许”；
+4. 暂时关闭 VPN 后重试，避免网络位置服务受干扰；
+5. `requiredLocation` 是否与页面实际显示的省市完全一致。
+
+如果曾经点过“阻止”，只重跑程序不会自动恢复权限，必须先在 Edge 设置中删除 WPS 的阻止记录。程序只读取 Windows/Edge 提供的真实位置，不会设置或伪造坐标。
 
 ### 姓名下拉框打不开或找不到姓名
 
@@ -164,6 +189,7 @@ Unregister-ScheduledTask -TaskName "WPS留校每日打卡" -Confirm:$false
 
 ## 文件说明
 
+- `first-run.cmd` / `first-run.ps1`：推荐的一键首次配置向导；
 - `checkin.js`：主程序；
 - `config.example.json`：可公开的配置模板；
 - `config.json`：本地私人配置，不会被 Git 提交；

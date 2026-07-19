@@ -12,7 +12,7 @@ const STATE_FILE = path.join(ROOT, 'state.json');
 
 function readConfig() {
   try {
-    return JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8'));
+    return JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8').replace(/^\uFEFF/, ''));
   } catch {
     return {};
   }
@@ -232,6 +232,22 @@ async function selectDormOptions(page) {
 }
 
 async function refreshLocation(page) {
+  const permissionState = async () => page.evaluate(async () => {
+    try {
+      return (await navigator.permissions.query({ name: 'geolocation' })).state;
+    } catch {
+      return 'unknown';
+    }
+  });
+
+  const initialPermission = await permissionState();
+  if (initialPermission === 'denied') {
+    throw new Error('Edge已阻止WPS获取位置，请运行setup.cmd并在表单中手动点击定位后选择“允许”');
+  }
+  if (MODE === 'run' && initialPermission === 'prompt') {
+    throw new Error('WPS位置权限尚未确认，请先运行setup.cmd，手动定位成功后再安装自动任务');
+  }
+
   let button = page.getByText('重新定位', { exact: true });
   if (await button.count() !== 1) {
     button = page.getByText('点击自动定位 (省/市)', { exact: true });
@@ -249,7 +265,13 @@ async function refreshLocation(page) {
       { timeout: 30000 }
     );
   } catch {
-    throw new Error(`真实定位未显示“${REQUIRED_LOCATION}”`);
+    const currentPermission = await permissionState();
+    const permissionHint = currentPermission === 'denied'
+      ? 'Edge已拒绝位置权限'
+      : currentPermission === 'prompt'
+        ? 'Edge位置权限仍未确认'
+        : '请检查Windows定位服务、Edge网站位置权限，并暂时关闭VPN后重试';
+    throw new Error(`真实定位未显示“${REQUIRED_LOCATION}”：${permissionHint}`);
   }
 }
 
@@ -308,7 +330,7 @@ async function main() {
   try {
     if (MODE === 'setup') {
       await page.goto(FORM_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
-      log('请登录WPS并允许真实定位，完成后关闭整个Edge窗口');
+      log(`请登录WPS，在表单中手动点击定位按钮，位置提示选择“允许”；确认显示“${REQUIRED_LOCATION}”后关闭整个Edge窗口`);
       await new Promise((resolve) => browser.on('disconnected', resolve));
       return;
     }
