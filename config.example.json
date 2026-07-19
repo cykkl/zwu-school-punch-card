@@ -1,9 +1,9 @@
 {
   "personName": "",
-  "requiredLocation": "",
+  "requiredLocation": "浙江省宁波市",
   "formUrl": "",
-  "formTitle": "",
-  "dormOption": "",
+  "formTitle": "26信智暑假留校每日打卡",
+  "dormOption": "在寝",
   "edgePath": "",
   "cdpPort": 9227
 }
